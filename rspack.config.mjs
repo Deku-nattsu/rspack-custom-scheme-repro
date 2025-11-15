@@ -9,6 +9,19 @@ if (!isRunningRspack && !isRunningWebpack) {
   throw new Error("Unknown bundler");
 }
 
+class Plugin {
+  apply(compiler) {
+    const { NormalModule } = compiler.webpack;
+    compiler.hooks.compilation.tap("MyPlugin", (compilation) => {
+      NormalModule.getCompilationHooks(compilation)
+        .readResource.for("custom")
+        .tap("MyPlugin", (context) => {
+          return `console.log('${context.resource} was here');`;
+        });
+    });
+  }
+}
+
 /**
  * @type {import('webpack').Configuration | import('@rspack/cli').Configuration}
  */
@@ -18,7 +31,7 @@ const config = {
   entry: {
     main: "./src/index",
   },
-  plugins: [new HtmlWebpackPlugin()],
+  plugins: [new HtmlWebpackPlugin(), new Plugin()],
   output: {
     clean: true,
     path: isRunningWebpack
